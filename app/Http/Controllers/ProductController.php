@@ -16,9 +16,24 @@ class ProductController extends Controller
         // Inisialisasi query dengan eager loading kategori
         $query = Product::with('category');
 
-        // Filter berdasarkan pencarian nama produk jika ada
+        // Cek apakah parameter search ada dan tidak kosong
         if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $searchTerm = $request->search;
+
+            $query->where(function ($q) use ($searchTerm) {
+                // Jika searchTerm adalah angka, cari di kolom id
+                if (is_numeric($searchTerm)) {
+                    $q->where('id', $searchTerm);
+                } else {
+                    // Jika searchTerm bukan angka, cari di kolom name
+                    $q->where('name', 'like', '%' . $searchTerm . '%');
+                }
+            });
+        }
+
+        // Cek apakah parameter id ada dan tidak kosong
+        if ($request->has('id') && $request->id != '') {
+            $query->where('id', $request->id);
         }
 
         // Filter berdasarkan kategori jika dipilih
@@ -28,6 +43,11 @@ class ProductController extends Controller
 
         // Paginate produk untuk menghindari pengambilan semua data sekaligus
         $products = $query->paginate(10);
+
+        // Cek apakah request adalah JSON (untuk API)
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Anda Melihat Produk', 'product' => $products], 200, [], JSON_PRETTY_PRINT);
+        }
 
         // Kirim data produk dan kategori ke view
         return view('product.index', compact('products', 'categories'));
@@ -45,20 +65,27 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $product = new Product($request->all());
+        $product = new Product($validatedData);
 
-        if ($request->file('image')) {
-            $validatedData['image'] = $request->file('image')->store('products', 'public');
+        if ($request->hasFile('image')) {
+            $product->image = $request->file('image')->store('products', 'public');
         }
 
-        $product->save($validatedData);
+        $product->save();
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');;
+        // Cek apakah request adalah JSON (untuk API)
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Product berhasil ditambahkan', 'product' => $product], 200, [], JSON_PRETTY_PRINT);
+        }
+
+        // Redirect ke view
+        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
     }
+
 
     public function edit(Product $product)
     {
@@ -82,12 +109,28 @@ class ProductController extends Controller
 
         $product->update($validatedData);
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil diubah.');;
+        $product->refresh();
+        // Cek apakah request adalah JSON (untuk API)
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Product berhasil diupdate', 'product' => $product], 200, [], JSON_PRETTY_PRINT);
+        }
+
+        // Redirect ke view
+        return redirect()->route('products.index')->with('success', 'Produk berhasil diupdate.');
     }
 
-    public function destroy(Product $product)
+    public function destroy(Request $request, $id)
     {
+
+        $product = Product::find($id);
+        // dd($product);
         $product->delete();
-        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');;
+        // Cek apakah request adalah JSON (untuk API)
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Product berhasil dihapus', 'product' => $product], 200, [], JSON_PRETTY_PRINT);
+        }
+
+        // Redirect ke view
+        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
     }
 }

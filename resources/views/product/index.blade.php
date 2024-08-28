@@ -64,8 +64,10 @@
                             <td>{{ number_format($product->price, 0, ',', '.') }}</td>
                             <td>{{ $product->description }}</td>
                             <td>
-                                <a href="{{ route('products.edit', $product) }}" class="btn btn-warning btn-sm">Edit</a>
-                                <form action="{{ route('products.destroy', $product) }}" method="POST" class="d-inline"
+                                <a href="{{ route('products.edit', $product->id) }}"
+                                    class="btn btn-warning btn-sm">Edit</a>
+                                <form action="{{ route('products.destroy', $product->id) }}" method="POST"
+                                    class="d-inline"
                                     onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
                                     @csrf
                                     @method('DELETE')
