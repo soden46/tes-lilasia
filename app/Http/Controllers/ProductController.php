@@ -133,7 +133,7 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
     }
 
-    // Route Tampilan User
+    // Function Tampilan User
     public function user(Request $request)
     {
         // Ambil semua kategori untuk dropdown
