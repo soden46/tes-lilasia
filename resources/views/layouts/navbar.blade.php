@@ -12,6 +12,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url('/') }}">Home</a>
                 </li>
+                @if (Auth::check() && Auth::user()->hasRole('user'))
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('/user/products') }}">Products</a>
+                    </li>
+                @endif
                 @if (Auth::check() && Auth::user()->hasRole('admin'))
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/products') }}">Products</a>

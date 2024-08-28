@@ -11,8 +11,6 @@
             </div>
         @endif
 
-        <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">Tambah Produk</a>
-
         <form method="GET" action="{{ route('products.index') }}" class="mb-4">
             <div class="row">
                 <div class="col-md-4">
@@ -45,7 +43,6 @@
                         <th>Kategori</th>
                         <th>Harga</th>
                         <th>Deskripsi</th>
-                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,17 +60,6 @@
                             <td>{{ $product->category->name }}</td>
                             <td>{{ number_format($product->price, 0, ',', '.') }}</td>
                             <td>{{ $product->description }}</td>
-                            <td>
-                                <a href="{{ route('products.edit', $product->id) }}"
-                                    class="btn btn-warning btn-sm">Edit</a>
-                                <form action="{{ route('products.destroy', $product->id) }}" method="POST"
-                                    class="d-inline"
-                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
-                                </form>
-                            </td>
                         </tr>
                     @empty
                         <tr>

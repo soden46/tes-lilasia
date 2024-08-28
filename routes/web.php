@@ -37,5 +37,8 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
 });
 
-// Route untuk halaman utama (untuk user biasa yang sudah login)
-Route::get('/', [HomeController::class, 'index'])->name('home')->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware('auth');
+    // Route untuk melihat daftar produk
+    Route::get('user/products', [ProductController::class, 'user'])->name('user/products');
+});

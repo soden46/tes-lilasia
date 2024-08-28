@@ -42,7 +42,7 @@ class ProductController extends Controller
         }
 
         // Paginate produk untuk menghindari pengambilan semua data sekaligus
-        $products = $query->paginate(10);
+        $products = $query->paginate(5);
 
         // Cek apakah request adalah JSON (untuk API)
         if ($request->wantsJson() || $request->is('api/*')) {
@@ -109,7 +109,6 @@ class ProductController extends Controller
 
         $product->update($validatedData);
 
-        $product->refresh();
         // Cek apakah request adalah JSON (untuk API)
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'Product berhasil diupdate', 'product' => $product], 200, [], JSON_PRETTY_PRINT);
@@ -132,5 +131,51 @@ class ProductController extends Controller
 
         // Redirect ke view
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
+    }
+
+    // Route Tampilan User
+    public function user(Request $request)
+    {
+        // Ambil semua kategori untuk dropdown
+        $categories = Category::all();
+
+        // Inisialisasi query dengan eager loading kategori
+        $query = Product::with('category');
+
+        // Cek apakah parameter search ada dan tidak kosong
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+
+            $query->where(function ($q) use ($searchTerm) {
+                // Jika searchTerm adalah angka, cari di kolom id
+                if (is_numeric($searchTerm)) {
+                    $q->where('id', $searchTerm);
+                } else {
+                    // Jika searchTerm bukan angka, cari di kolom name
+                    $q->where('name', 'like', '%' . $searchTerm . '%');
+                }
+            });
+        }
+
+        // Cek apakah parameter id ada dan tidak kosong
+        if ($request->has('id') && $request->id != '') {
+            $query->where('id', $request->id);
+        }
+
+        // Filter berdasarkan kategori jika dipilih
+        if ($request->has('category') && $request->category != '') {
+            $query->where('category_id', $request->category);
+        }
+
+        // Paginate produk untuk menghindari pengambilan semua data sekaligus
+        $products = $query->paginate(5);
+
+        // Cek apakah request adalah JSON (untuk API)
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Anda Melihat Produk', 'product' => $products], 200, [], JSON_PRETTY_PRINT);
+        }
+
+        // Kirim data produk ke view
+        return view('user.product', compact('products', 'categories'));
     }
 }
